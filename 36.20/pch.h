@@ -338,7 +338,9 @@ inline void PatchAllNetModes(uintptr_t AttemptDeriveFromURL)
 
 				for (auto j = 0; j > -0x100000; j--) // so we find everything. no func is actually 1mb
 				{
-					if ((scanBytes[i + j] & 0xF8) == 0x48 && ((scanBytes[i + j + 1] & 0xFC) == 0x80 || (scanBytes[i + j + 1] & 0xF8) == 0x38) && (scanBytes[i + j + 2] & 0xF0) != 0xC0 && (scanBytes[i + j + 2] & 0xF0) != 0xE0 && scanBytes[i + j + 2] != 0x65 && scanBytes[i + j + 2] != 0xBB && scanBytes[i + j + 3] == 0x38 && ((scanBytes[i + j + 1] & 0xFC) != 0x80 || scanBytes[i + j + 4] == 0x0))
+					if ((scanBytes[i + j] & 0xF8) == 0x48 && ((scanBytes[i + j + 1] & 0xFC) == 0x80 || (scanBytes[i + j + 1] & 0xF8) == 0x38)
+						&& (scanBytes[i + j + 2] & 0xF0) < 0xC0 && scanBytes[i + j + 2] != 0x65 && scanBytes[i + j + 2] != 0xBB && scanBytes[i + j + 3] == 0x48
+						&& ((scanBytes[i + j + 1] & 0xFC) != 0x80 || scanBytes[i + j + 4] == 0x0))
 					{
 						// now, scan for if (NetDriver) return NM_Client;
 
@@ -349,7 +351,7 @@ inline void PatchAllNetModes(uintptr_t AttemptDeriveFromURL)
 							{
 								auto Scuffness = __int64(&scanBytes[i + j + k + 5]);
 
-								if (*(uint32_t*)Scuffness != 0xF0 && (scanBytes[i + j + k + 4] != 0xC || scanBytes[i + j + k + 5] != 0xB) && scanBytes[i + j + k + 4] != 0x09)
+								if (*(uint32_t*)Scuffness != 0x108 && (scanBytes[i + j + k + 4] != 0xC || scanBytes[i + j + k + 5] != 0xB) && scanBytes[i + j + k + 4] != 0x09)
 									continue;
 
 								Memory::Patch<uint16_t>(__int64(&scanBytes[i + j + k]), 0x9090);
@@ -373,7 +375,8 @@ inline void PatchAllNetModes(uintptr_t AttemptDeriveFromURL)
 								auto Scuffness = __int64(&scanBytes[i + j + k]);
 								Scuffness = (Scuffness + 2) + *(int8_t*)(Scuffness + 1);
 
-								if (*(uint32_t*)(Scuffness + 3) != 0xF0 && (*(uint8_t*)(Scuffness + 2) != 0xC || *(uint8_t*)(Scuffness + 3) != 0xB) && *(uint8_t*)(Scuffness + 2) != 0x09)
+								if (*(uint32_t*)(Scuffness + 3) != 0x108 && (*(uint8_t*)(Scuffness + 2) != 0xC || *(uint8_t*)(Scuffness + 3) != 0xB)
+									&& *(uint8_t*)(Scuffness + 2) != 0x09)
 									continue;
 
 								Memory::Patch<uint8_t>(__int64(&scanBytes[i + j + k]), 0xeb);
@@ -396,7 +399,7 @@ inline void PatchAllNetModes(uintptr_t AttemptDeriveFromURL)
 							{
 								auto Scuffness = __int64(&scanBytes[i + j + k + 9]);
 
-								if (*(uint32_t*)Scuffness != 0xF0 && (scanBytes[i + j + k + 8] != 0xC || scanBytes[i + j + k + 9] != 0xB) && scanBytes[i + j + k + 8] != 0x09)
+								if (*(uint32_t*)Scuffness != 0x108 && (scanBytes[i + j + k + 8] != 0xC || scanBytes[i + j + k + 9] != 0xB) && scanBytes[i + j + k + 8] != 0x09)
 									continue;
 
 								DWORD og;
@@ -424,7 +427,8 @@ inline void PatchAllNetModes(uintptr_t AttemptDeriveFromURL)
 								auto Scuffness = __int64(&scanBytes[i + j + k]);
 								Scuffness = (Scuffness + 6) + *(int32_t*)(Scuffness + 2);
 
-								if (*(uint32_t*)(Scuffness + 3) != 0xF0 && (*(uint8_t*)(Scuffness + 2) != 0xC || *(uint8_t*)(Scuffness + 3) != 0xB) && *(uint8_t*)(Scuffness + 2) != 0x09)
+								if (*(uint32_t*)(Scuffness + 3) != 0x108 && (*(uint8_t*)(Scuffness + 2) != 0xC || *(uint8_t*)(Scuffness + 3) != 0xB)
+									&& *(uint8_t*)(Scuffness + 2) != 0x09)
 									continue;
 
 								Memory::Patch<uint16_t>(__int64(&scanBytes[i + j + k]), 0xe990);

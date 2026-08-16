@@ -3,7 +3,7 @@
 
 const TCHAR* ToString(ELogVerbosity::Type Verbosity)
 {
-	const TCHAR* (*Fn)(ELogVerbosity::Type) = decltype(Fn)(ImageBase + 0x1642CB0);
+	const TCHAR* (*Fn)(ELogVerbosity::Type) = decltype(Fn)(ImageBase + 0x1AEFEC0);
 	return Fn(Verbosity);
 }
 

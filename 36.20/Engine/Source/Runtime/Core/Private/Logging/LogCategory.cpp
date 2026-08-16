@@ -10,7 +10,7 @@ FLogCategoryBase::FLogCategoryBase(const FLogCategoryName& InCategoryName, ELogV
 	, CompileTimeVerbosity(uint8(InCompileTimeVerbosity))
 	, CategoryName(InCategoryName)
 {
-	constexpr int32 FLogCategoryBase_Ctor = 0x1ADDE84;
+	constexpr int32 FLogCategoryBase_Ctor = 0x2884E54;
 
 	if (FLogCategoryBase_Ctor)
 	{
@@ -26,7 +26,7 @@ FLogCategoryBase::FLogCategoryBase(const FLogCategoryName& InCategoryName, ELogV
 
 static FLogCategoryName MakeCategoryName(const TCHAR* InCategoryName)
 {
-	constexpr int32 FName_FromWide = 0x10F702C;
+	constexpr int32 FName_FromWide = 0x1847508;
 
 	FLogCategoryName Out;
 
@@ -48,15 +48,14 @@ FLogCategoryBase::~FLogCategoryBase()
 {
 	if (CompileTimeVerbosity > ELogVerbosity::NoLogging)
 	{
-		constexpr int32 FLogSuppressionInterface_TryGet = 0x0;
-		constexpr int32 FLogSuppressionInterface_DisassociateSuppress = 0x0;
+		constexpr int32 GLogSuppressionInterface = 0x14F8CD30;
+		constexpr int32 FLogSuppressionInterface_DisassociateSuppress = 0x65AFE1C;
 
-		if (FLogSuppressionInterface_TryGet && FLogSuppressionInterface_DisassociateSuppress)
+		if (GLogSuppressionInterface && FLogSuppressionInterface_DisassociateSuppress)
 		{
-			void* (*TryGet)() = decltype(TryGet)(ImageBase + FLogSuppressionInterface_TryGet);
 			void (*DisassociateSuppress)(void*, FLogCategoryBase*) = decltype(DisassociateSuppress)(ImageBase + FLogSuppressionInterface_DisassociateSuppress);
 
-			if (void* Singleton = TryGet())
+			if (void* Singleton = *reinterpret_cast<void**>(ImageBase + GLogSuppressionInterface))
 			{
 				DisassociateSuppress(Singleton, this);
 			}
@@ -66,7 +65,7 @@ FLogCategoryBase::~FLogCategoryBase()
 
 void FLogCategoryBase::SetVerbosity(ELogVerbosity::Type NewVerbosity)
 {
-	constexpr int32 FLogCategoryBase_SetVerbosity = 0x1021D54;
+	constexpr int32 FLogCategoryBase_SetVerbosity = 0x35755C8;
 
 	if (FLogCategoryBase_SetVerbosity)
 	{
@@ -90,17 +89,17 @@ void FLogCategoryBase::PostTrigger(ELogVerbosity::Type VerbosityLevel)
 {
 	if (DebugBreakOnLog || (VerbosityLevel & ELogVerbosity::BreakOnLog))
 	{
-		constexpr int32 GLog = 0x0;
-		constexpr int32 FOutputDeviceRedirector_FlushThreadedLogs = 0x0;
+		constexpr int32 FOutputDeviceRedirector_Get = 0x1DCBE08;
+		constexpr int32 FOutputDeviceRedirector_FlushThreadedLogs = 0x1DCBF30;
 
-		if (GLog && FOutputDeviceRedirector_FlushThreadedLogs)
+		if (FOutputDeviceRedirector_Get && FOutputDeviceRedirector_FlushThreadedLogs)
 		{
-			void* Redirector = *reinterpret_cast<void**>(ImageBase + GLog);
-			void (*FlushThreadedLogs)(void*, bool) = decltype(FlushThreadedLogs)(ImageBase + FOutputDeviceRedirector_FlushThreadedLogs);
+			void* (*Get)() = decltype(Get)(ImageBase + FOutputDeviceRedirector_Get);
+			void (*FlushThreadedLogs)(void*, uint8) = decltype(FlushThreadedLogs)(ImageBase + FOutputDeviceRedirector_FlushThreadedLogs);
 
-			if (Redirector)
+			if (void* Redirector = Get())
 			{
-				FlushThreadedLogs(Redirector, false);
+				FlushThreadedLogs(Redirector, 0);
 			}
 		}
 

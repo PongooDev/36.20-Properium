@@ -34,7 +34,7 @@ namespace
 void FMsg::LogV(const ANSICHAR* File, int32 Line, const FLogCategoryName& Category, ELogVerbosity::Type Verbosity, const TCHAR* Fmt, va_list Args)
 {
 #if !NO_LOGGING
-	constexpr int32 FMsg_LogV = 0x19722F8;
+	constexpr int32 FMsg_LogV = 0x219895C;
 
 	if (FMsg_LogV)
 	{
@@ -57,14 +57,14 @@ void FMsg::LogV(const ANSICHAR* File, int32 Line, const FLogCategoryName& Catego
 		FallbackSerialize(Category, ELogVerbosity::Fatal, Buffer);
 		fflush(stdout);
 
-		constexpr int32 FDebug_AssertFailedV = 0x0;
+		constexpr int32 FDebug_AssertFailedV = 0x65C18CC;
 
 		if (FDebug_AssertFailedV)
 		{
-			void (*AssertFailedV)(const ANSICHAR*, const ANSICHAR*, int32, const TCHAR*, va_list) =
+			void (*AssertFailedV)(const ANSICHAR*, const ANSICHAR*, int32, void*, const TCHAR*, va_list) =
 				decltype(AssertFailedV)(ImageBase + FDebug_AssertFailedV);
 
-			AssertFailedV("", File, Line, Fmt, Args);
+			AssertFailedV("", File, Line, nullptr, Fmt, Args);
 		}
 
 		if (IsDebuggerPresent())
