@@ -785,6 +785,7 @@ public:
 	bool IsPlayingAnimation() const;
 	void OnPaint(struct FPaintContext& Context) const;
 
+	static void Init();
 public:
 	static class UClass* StaticClass()
 	{

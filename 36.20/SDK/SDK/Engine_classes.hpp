@@ -16081,11 +16081,15 @@ public:
 
 public:
 	static class UWorld* GetWorld();
-	void Listen();
 	void HandleTimelineScrubbed();
 	class AWorldSettings* K2_GetWorldSettings();
 
 	class UDataLayerManager* GetDataLayerManager() const;
+
+	bool ServerTravel(const FString& InURL, bool bAbsolute = false, bool bShouldSkipGameNotify = false) {
+		bool (*Fn)(UWorld*, const FString&, bool, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x7CD2604);
+		return Fn(this, InURL, bAbsolute, bShouldSkipGameNotify);
+	}
 
 public:
 	static class UClass* StaticClass()

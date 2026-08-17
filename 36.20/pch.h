@@ -47,6 +47,7 @@ using namespace SDK;
 
 namespace Configuration {
 	inline bool bUseGameSessions = false;
+	inline bool bClient = false;
 }
 
 inline uint64_t ImageBase = InSDKUtils::GetImageBase();

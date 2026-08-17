@@ -8,6 +8,35 @@
 DWORD WINAPI Main(LPVOID) {
     FCrashReporter::Register();
 
+    if (Configuration::bClient) {
+        UObject* ConsoleObj = UGameplayStatics::SpawnObject(UEngine::GetEngine()->ConsoleClass, UEngine::GetEngine()->GameViewport);
+        if (ConsoleObj) {
+            UEngine::GetEngine()->GameViewport->ViewportConsole = (UConsole*)ConsoleObj;
+            Log("Initialized Console!");
+        }
+        else {
+            Log("Failed to Spawn Console!");
+        }
+
+        std::thread([]() {
+            while (true)
+            {
+                if (GetAsyncKeyState(VK_F2))
+                {
+                    auto GameInstance = UWorld::GetWorld()->OwningGameInstance;
+                    auto LocalPlayers = GameInstance->LocalPlayers;
+                    auto PlayerController = LocalPlayers[0]->PlayerController;
+
+                    PlayerController->CheatManager = (UFortCheatManager*)UGameplayStatics::SpawnObject(UFortCheatManager::StaticClass(), PlayerController);
+                }
+            }
+            }).detach();
+
+        Memory::Patch(ImageBase + 0x5841D50, 0xC3); // void AFortPlayerControllerFrontEnd::ShowAppEnvironmentSecurityMessage(AFortPlayerControllerFrontEnd* this, unsigned __int8 Category, FString* Details, bool bCloseClient);
+
+        return 0;
+    }
+
     InitConsole();
     Log(L"Welcome to 36.20-Properium!");
     Log(std::format("ImageBase: 0x{:X}", ImageBase));
@@ -36,18 +65,30 @@ DWORD WINAPI Main(LPVOID) {
 
     //Sleep(10000);
 
-    GIsClient = 0;
-    GIsServer = 1;
+    UUserWidget::Init();
+    AFortPlayerControllerFrontEnd::Init();
+
+    if (GIsClient) {
+        GIsClient = 0;
+    }
+    if (!GIsServer) {
+        GIsServer = 1;
+    }
 
     UKismetSystemLibrary::ExecuteConsoleCommand(GWorld, L"log LogConfig off", 0);
     UKismetSystemLibrary::ExecuteConsoleCommand(GWorld, L"log LogFortUIDirector off", 0);
     
     UWorld* World = UWorld::GetWorld();
-    UFortGameInstance* FortGameInstance = World->OwningGameInstance->Cast<UFortGameInstance>();
+    if (World) {
+        UFortGameInstance* FortGameInstance = World->OwningGameInstance->Cast<UFortGameInstance>();
 
-    FString TravelURL = L"Asteria_Terrain?listen?RequiredPlayers=1";
-    
-    FortGameInstance ? FortGameInstance->LocalPlayers.Remove(0) : 0;
+        FString TravelURL = L"Hermes_Terrain?listen?RequiredPlayers=1";
+
+        if (FortGameInstance && FortGameInstance->LocalPlayers.Num()) {
+            FortGameInstance->LocalPlayers.Remove(0);
+        }
+        World->ServerTravel(TravelURL);
+    }
 
     return 0;
 }
