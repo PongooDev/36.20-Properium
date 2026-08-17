@@ -41,6 +41,18 @@ public:
 	bool IsA(EClassCastFlags TypeFlags) const;
 	bool IsA(class UClass* TypeClass) const;
 	inline UObject* Cast(UClass* OtherClass) { return IsA(OtherClass) ? this : nullptr; }
+
+	static class UObject* StaticLoadObject(class UClass* ObjectClass, class UObject* InOuter, const wchar_t* InName, const wchar_t* Filename = nullptr, uint32 LoadFlags = 0, void* Sandbox = nullptr, bool bAllowObjectReconciliation = true, void* InSerializeContext = nullptr)
+	{
+		class UObject* (*Fn)(class UClass*, class UObject*, const wchar_t*, const wchar_t*, uint32, void*, bool, void*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x329C1C8);
+		return Fn(ObjectClass, InOuter, InName, Filename, LoadFlags, Sandbox, bAllowObjectReconciliation, InSerializeContext);
+	}
+
+	inline void* GetInterfaceAddress(class UClass* InterfaceClass)
+	{
+		void* (*Fn)(UObject*, class UClass*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x17974EC);
+		return Fn(this, InterfaceClass);
+	}
 	template <typename T> inline bool IsA() { return IsA(T::StaticClass()); }
 	template <typename T> inline T* Cast() { return IsA(T::StaticClass()) ? (T*)this : nullptr; }
 

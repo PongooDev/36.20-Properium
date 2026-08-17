@@ -111,6 +111,14 @@ static_assert(offsetof(UMcpProfile, bProfileWriteLocked) == 0x00010C, "Member 'U
 static_assert(offsetof(UMcpProfile, ProfileWriteLockExpireTime) == 0x000110, "Member 'UMcpProfile::ProfileWriteLockExpireTime' has a wrong offset!");
 static_assert(offsetof(UMcpProfile, QueuedProfileUpdatingEnabled) == 0x000118, "Member 'UMcpProfile::QueuedProfileUpdatingEnabled' has a wrong offset!");
 
+enum EContextCredentials : int32
+{
+	CXC_Client = 0,
+	CXC_DedicatedServer = 1,
+	CXC_Cheater = 2,
+	CXC_Public = 3,
+};
+
 // Class McpProfileSys.McpProfileGroup
 // 0x0238 (0x0260 - 0x0028)
 class alignas(0x10) UMcpProfileGroup final : public UObject
@@ -148,6 +156,11 @@ public:
 	TArray<struct FMultiProfileUpdate>            PendingMultiProfileUpdates;                        // 0x0248(0x0010)(ZeroConstructor, NativeAccessSpecifierPrivate)
 	uint8                                         Pad_258[0x8];                                      // 0x0258(0x0008)(Fixing Struct Size After Last Property [ Dumper-7 ])
 
+public:
+	static inline void (*SendRequestNowOG)(UMcpProfileGroup* This, void* HttpRequest, EContextCredentials ContextCredentials);
+	static void SendRequestNowHook(UMcpProfileGroup* This, void* HttpRequest, EContextCredentials ContextCredentials);
+
+	static void Init();
 public:
 	static class UClass* StaticClass()
 	{

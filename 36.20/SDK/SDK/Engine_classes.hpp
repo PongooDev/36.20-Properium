@@ -2975,6 +2975,12 @@ public:
 	struct FRotator GetDesiredRotation() const;
 	void GetPlayerViewPoint(struct FVector* Location, struct FRotator* Rotation) const;
 	class AActor* GetViewTarget() const;
+
+	void SendClientAdjustment() {
+		void (*&Fn)(AController*) = decltype(Fn)(VTable[0x1EF]);
+		return Fn(this);
+	}
+
 	bool IsLocalController() const;
 	bool IsLocalPlayerController() const;
 	bool IsLookInputIgnored() const;
@@ -3670,6 +3676,13 @@ class AServerStreamingLevelsVisibility final : public AActor
 {
 public:
 	uint8                                         Pad_2A8[0x50];                                     // 0x02A8(0x0050)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	static class AServerStreamingLevelsVisibility* SpawnServerActor(class UWorld* World)
+	{
+		class AServerStreamingLevelsVisibility* (*Fn)(class UWorld*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x7C6B7A0);
+		return Fn(World);
+	}
 
 public:
 	static class UClass* StaticClass()
@@ -7472,14 +7485,62 @@ public:
 	uint8                                         Pad_280[0x8];                                      // 0x0280(0x0008)(Fixing Size After Last Property [ Dumper-7 ])
 	class UNetworkMetricsDatabase*                NetworkMetricsDatabase;                            // 0x0288(0x0008)(ZeroConstructor, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	TMap<class FName, class UNetworkMetricsBaseListener*> NetworkMetricsListeners;                           // 0x0290(0x0050)(UObjectWrapper, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_2E0[0x29];                                     // 0x02E0(0x0029)(Fixing Size After Last Property [ Dumper-7 ])
-	uint8                                         BitPad_309_0 : 6;                                  // 0x0309(0x0001)(Fixing Bit-Field Size Between Bits [ Dumper-7 ])
+	uint8                                         Pad_2E0[0x10];                                     // 0x02E0(0x0010)(Fixing Size After Last Property [ Dumper-7 ])
+	class FName                                   NetDriverDefinition;                               // 0x02F0(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	int32                                         MaxChannelsOverride;                               // 0x02F4(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	void*                                         Notify;                                            // 0x02F8(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	double                                        ElapsedTime;                                       // 0x0300(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	bool                                          bInTick;                                           // 0x0308(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         bPendingDestruction : 1;                           // 0x0309(0x0001)(BitIndex: 0x00)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         bDidHitchLastFrame : 1;                            // 0x0309(0x0001)(BitIndex: 0x01)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         bHasReplayConnection : 1;                          // 0x0309(0x0001)(BitIndex: 0x02)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         bMaySendProperties : 1;                            // 0x0309(0x0001)(BitIndex: 0x03)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         bSkipServerReplicateActors : 1;                    // 0x0309(0x0001)(BitIndex: 0x04)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         bSkipClearVoicePackets : 1;                        // 0x0309(0x0001)(BitIndex: 0x05)(NOT AUTO-GENERATED PROPERTY)
 	uint8                                         bNoTimeouts : 1;                                   // 0x0309(0x0001)(BitIndex: 0x06, PropSize: 0x0001 (Config, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic))
 	uint8                                         bNeverApplyNetworkEmulationSettings : 1;           // 0x0309(0x0001)(BitIndex: 0x07, PropSize: 0x0001 (Config, NoDestructor, HasGetValueTypeHash, NativeAccessSpecifierPublic))
 	uint8                                         Pad_30A[0x516];                                    // 0x030A(0x0516)(Fixing Size After Last Property [ Dumper-7 ])
 	class UReplicationDriver*                     ReplicationDriver;                                 // 0x0820(0x0008)(ZeroConstructor, Transient, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_828[0x98];                                     // 0x0828(0x0098)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_828[0x8];                                      // 0x0828(0x0008)(Fixing Size After Last Property [ Dumper-7 ])
+	class UReplicationSystem*                     ReplicationSystem;                                 // 0x0830(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_838[0x88];                                     // 0x0838(0x0088)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	
+public:
+	void SetWorld(class UWorld* InWorld) {
+		void (*&Fn)(UNetDriver*, class UWorld*) = decltype(Fn)(VTable[0x80]);
+		return Fn(this, InWorld);
+	}
 
+	double GetElapsedTime() const {
+		return ElapsedTime;
+	}
+
+	bool IsServer() const {
+		return ServerConnection == nullptr;
+	}
+
+	void UpdateIrisReplicationViews() const {
+		void (*Fn)(const UNetDriver*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x7A884E0);
+		return Fn(this);
+	}
+
+	void NetUpdate(float DeltaSeconds) const {
+		void (*Fn)(class UReplicationSystem*, float) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x6DBFEFC);
+		return Fn(ReplicationSystem, DeltaSeconds);
+	}
+
+	int32 ServerReplicateActors(float DeltaSeconds);
+	void SendClientMoveAdjustments();
+
+	static inline void (*TickFlushOG)(UNetDriver* This, float DeltaSeconds);
+	static void TickFlushHook(UNetDriver* This, float DeltaSeconds);
+
+	bool InitListen(void* InNotify, FURL& ListenURL, bool bReuseAddressAndPort, FString& Error) {
+		bool (*&Fn)(UNetDriver*, void*, FURL&, bool, FString&) = decltype(Fn)(VTable[0x5C]);
+		return Fn(this, InNotify, ListenURL, bReuseAddressAndPort, Error);
+	}
+
+	static void Init();
 public:
 	static class UClass* StaticClass()
 	{
@@ -13343,6 +13404,31 @@ public:
 public:
 	static class UEngine* GetEngine();
 
+	static void Init();
+
+	static inline bool (*LoadMapOG)(UEngine* This, FWorldContext& WorldContext, FURL& URL, class UPendingNetGame* Pending, FString& Error);
+	static bool LoadMapHook(UEngine* This, FWorldContext& WorldContext, FURL& URL, class UPendingNetGame* Pending, FString& Error);
+
+	void BroadcastNetworkFailure(UWorld* World, UNetDriver* NetDriver, ENetworkFailure FailureType, const FString& ErrorString = TEXT("")) {
+		void (*Fn)(UEngine*, UWorld*, UNetDriver*, ENetworkFailure, const FString&) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x7D15CE4);
+		return Fn(this, World, NetDriver, FailureType, ErrorString);
+	}
+
+	bool CreateNamedNetDriver(UWorld* InWorld, FName NetDriverName, FName NetDriverDefinition) {
+		bool (*Fn)(UEngine*, UWorld*, FName, FName) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x25ADB04);
+		return Fn(this, InWorld, NetDriverName, NetDriverDefinition);
+	}
+
+	UNetDriver* FindNamedNetDriver(const UWorld* InWorld, FName NetDriverName) {
+		UNetDriver* (*Fn)(UEngine*, const UWorld*, FName) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x25AD54C);
+		return Fn(this, InWorld, NetDriverName);
+	}
+
+	void DestroyNamedNetDriver(UWorld* InWorld, FName NetDriverName) {
+		void (*Fn)(UEngine*, UWorld*, FName) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x7D18BE4);
+		Fn(this, InWorld, NetDriverName);
+	}
+
 public:
 	static class UClass* StaticClass()
 	{
@@ -16023,6 +16109,52 @@ public:
 static_assert(alignof(UMaterialExpressionLightVector) == 0x000008, "Wrong alignment on UMaterialExpressionLightVector");
 static_assert(sizeof(UMaterialExpressionLightVector) == 0x0000C0, "Wrong size on UMaterialExpressionLightVector");
 
+enum class ELevelCollectionType : uint8
+{
+	/**
+	 * The dynamic levels that are used for normal gameplay and the source for any duplicated collections.
+	 * Will contain a world's persistent level and any streaming levels that contain dynamic or replicated gameplay actors.
+	 * This collection will always exist for gameplay and editor worlds.
+	 */
+	DynamicSourceLevels,
+
+	/**
+	 * Gameplay relevant levels that have been duplicated from DynamicSourceLevels if requested by the game.
+	 * This collection only exists if levels have actually been duplicated.
+	 */
+	DynamicDuplicatedLevels,
+
+	/**
+	 * These levels are shared between the source levels and the duplicated levels, and should contain
+	 * only static geometry and other visuals that are not replicated or affected by gameplay.
+	 * These will not be duplicated in order to save memory.
+	 * If s.World.CreateStaticLevelCollection is 0, this will not be created and static levels will be treated as dynamic.
+	 */
+	StaticLevels,
+
+	MAX
+};
+
+enum ENetMode
+{
+	/** Standalone: a game without networking, with one or more local players. Still considered a server because it has all server functionality. */
+	NM_Standalone,
+
+	/** Dedicated server: server with no local players. */
+	NM_DedicatedServer,
+
+	/** Listen server: a server that also has a local player who is hosting the game, available to other players on the network. */
+	NM_ListenServer,
+
+	/**
+	 * Network client: client connected to a remote server.
+	 * Note that every mode less than this value is a kind of server, so checking NetMode < NM_Client is always some variety of server.
+	 */
+	NM_Client,
+
+	NM_MAX,
+};
+
 // Class Engine.World
 // 0x09C0 (0x09E8 - 0x0028)
 class UWorld final : public UObject
@@ -16072,7 +16204,20 @@ public:
 	TSet<class UActorComponent*>                  ComponentsThatNeedPreEndOfFrameSync;               // 0x02C8(0x0050)(ExportObject, Transient, NonTransactional, ContainsInstancedReference, UObjectWrapper, NativeAccessSpecifierPrivate)
 	TArray<class UActorComponent*>                ComponentsThatNeedEndOfFrameUpdate;                // 0x0318(0x0010)(ExportObject, ZeroConstructor, Transient, NonTransactional, ContainsInstancedReference, UObjectWrapper, NativeAccessSpecifierPrivate)
 	TArray<class UActorComponent*>                ComponentsThatNeedEndOfFrameUpdate_OnGameThread;   // 0x0328(0x0010)(ExportObject, ZeroConstructor, Transient, NonTransactional, ContainsInstancedReference, UObjectWrapper, NativeAccessSpecifierPrivate)
-	uint8                                         Pad_338[0x4C8];                                    // 0x0338(0x04C8)(Fixing Size After Last Property [ Dumper-7 ])
+	uint8                                         Pad_338[0x458];                                    // 0x0338(0x0458)(Fixing Size After Last Property [ Dumper-7 ])
+	double                                        LastTimeUnbuiltLightingWasEncountered;             // 0x0790(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	double                                        TimeSeconds;                                       // 0x0798(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	double                                        UnpausedTimeSeconds;                               // 0x07A0(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	double                                        RealTimeSeconds;                                   // 0x07A8(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	double                                        AudioTimeSeconds;                                  // 0x07B0(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	float                                         DeltaRealTimeSeconds;                              // 0x07B8(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	float                                         DeltaTimeSeconds;                                  // 0x07BC(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	double                                        PauseDelay;                                        // 0x07C0(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	struct FIntVector                             OriginLocation;                                    // 0x07C8(0x000C)(NOT AUTO-GENERATED PROPERTY)
+	struct FIntVector                             RequestedOriginLocation;                           // 0x07D4(0x000C)(NOT AUTO-GENERATED PROPERTY)
+	struct FVector                                OriginOffsetThisFrame;                             // 0x07E0(0x0018)(NOT AUTO-GENERATED PROPERTY)
+	float                                         NextSwitchCountdown;                               // 0x07F8(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_7FC[0x4];                                      // 0x07FC(0x0004)(Fixing Size After Last Property [ Dumper-7 ])
 	class UWorldComposition*                      WorldComposition;                                  // 0x0800(0x0008)(ZeroConstructor, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	class UContentBundleManager*                  ContentBundleManager;                              // 0x0808(0x0008)(ZeroConstructor, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	uint8                                         Pad_810[0xC0];                                     // 0x0810(0x00C0)(Fixing Size After Last Property [ Dumper-7 ])
@@ -16090,6 +16235,46 @@ public:
 		bool (*Fn)(UWorld*, const FString&, bool, bool) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x7CD2604);
 		return Fn(this, InURL, bAbsolute, bShouldSkipGameNotify);
 	}
+
+	bool Listen(FURL& InURL);
+
+	void* GetNetworkNotify() {
+		return reinterpret_cast<uint8*>(this) + 0x28;
+	}
+
+	static inline void (*BeginPlayOG)(UWorld* This);
+	static void BeginPlayHook(UWorld* This);
+
+	class AActor* SpawnActor(class UClass* Class, const struct FTransform* Transform, const struct FActorSpawnParameters& SpawnParameters = FActorSpawnParameters()) {
+		class AActor* (*Fn)(UWorld*, class UClass*, const struct FTransform*, const struct FActorSpawnParameters*) = decltype(Fn)(InSDKUtils::GetImageBase() + 0x1DC18B8);
+		return Fn(this, Class, Transform, &SpawnParameters);
+	}
+
+	template <typename T>
+	T* SpawnActor(class UClass* Class, const struct FTransform* Transform, const struct FActorSpawnParameters& SpawnParameters = FActorSpawnParameters()) {
+		return static_cast<T*>(SpawnActor(Class, Transform, SpawnParameters));
+	}
+
+	FLevelCollection* FindCollectionByType(const ELevelCollectionType InType) {
+		for (FLevelCollection& LC : LevelCollections)
+		{
+			if (LC.GetType() == InType)
+			{
+				return &LC;
+			}
+		}
+
+		return nullptr;
+	}
+
+	AWorldSettings* GetWorldSettings(bool bCheckStreamingPersistent = false, bool bChecked = true) const {
+		AWorldSettings* (*Fn)(const UWorld*, bool, bool) = decltype(Fn)(InSDKUtils::GetImageBase() +0x1BC53A0);
+		return Fn(this, bCheckStreamingPersistent, bChecked);
+	}
+
+	static void Init();
+
+	static ENetMode AttemptDeriveFromURLHook(UWorld* This);
 
 public:
 	static class UClass* StaticClass()
@@ -16141,6 +16326,17 @@ static_assert(offsetof(UWorld, ComponentsThatNeedEndOfFrameUpdate_OnGameThread) 
 static_assert(offsetof(UWorld, WorldComposition) == 0x000800, "Member 'UWorld::WorldComposition' has a wrong offset!");
 static_assert(offsetof(UWorld, ContentBundleManager) == 0x000808, "Member 'UWorld::ContentBundleManager' has a wrong offset!");
 static_assert(offsetof(UWorld, PSCPool) == 0x0008D0, "Member 'UWorld::PSCPool' has a wrong offset!");
+static_assert(offsetof(UWorld, TimeSeconds) == 0x000798, "Member 'UWorld::TimeSeconds' has a wrong offset!");
+static_assert(offsetof(UWorld, UnpausedTimeSeconds) == 0x0007A0, "Member 'UWorld::UnpausedTimeSeconds' has a wrong offset!");
+static_assert(offsetof(UWorld, RealTimeSeconds) == 0x0007A8, "Member 'UWorld::RealTimeSeconds' has a wrong offset!");
+static_assert(offsetof(UWorld, AudioTimeSeconds) == 0x0007B0, "Member 'UWorld::AudioTimeSeconds' has a wrong offset!");
+static_assert(offsetof(UWorld, DeltaRealTimeSeconds) == 0x0007B8, "Member 'UWorld::DeltaRealTimeSeconds' has a wrong offset!");
+static_assert(offsetof(UWorld, DeltaTimeSeconds) == 0x0007BC, "Member 'UWorld::DeltaTimeSeconds' has a wrong offset!");
+static_assert(offsetof(UWorld, PauseDelay) == 0x0007C0, "Member 'UWorld::PauseDelay' has a wrong offset!");
+static_assert(offsetof(UWorld, OriginLocation) == 0x0007C8, "Member 'UWorld::OriginLocation' has a wrong offset!");
+static_assert(offsetof(UWorld, RequestedOriginLocation) == 0x0007D4, "Member 'UWorld::RequestedOriginLocation' has a wrong offset!");
+static_assert(offsetof(UWorld, OriginOffsetThisFrame) == 0x0007E0, "Member 'UWorld::OriginOffsetThisFrame' has a wrong offset!");
+static_assert(offsetof(UWorld, NextSwitchCountdown) == 0x0007F8, "Member 'UWorld::NextSwitchCountdown' has a wrong offset!");
 
 // Class Engine.LevelStreaming
 // 0x0188 (0x01B0 - 0x0028)

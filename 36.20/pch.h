@@ -61,6 +61,10 @@ inline uint64_t ImageBase = InSDKUtils::GetImageBase();
 
 #include "Engine/Source/Runtime/Core/Public/Logging/LogMacros.h"
 
+#define LogNet (*(FLogCategoryBase*)(0x14E23718 + InSDKUtils::GetImageBase()))
+#define LogWorld (*(FLogCategoryBase*)(0x1504C828 + InSDKUtils::GetImageBase()))
+#define LogFort (*(FLogCategoryBase*)(0x14E51F90 + InSDKUtils::GetImageBase()))
+
 inline void InitConsole() {
 	AllocConsole();
 	FILE* fptr;
@@ -136,6 +140,8 @@ public:
 		VirtualProtect(LPVOID(ptr), sizeof(_Is), PAGE_EXECUTE_READWRITE, &og);
 		*(_Is*)ptr = byte;
 		VirtualProtect(LPVOID(ptr), sizeof(_Is), og, &og);
+
+		FlushInstructionCache(GetCurrentProcess(), LPCVOID(ptr), sizeof(_Is));
 	}
 
 	static void Nop(uintptr_t ptr, size_t size)
@@ -318,6 +324,45 @@ public:
 
 		return PatchCall(callSite, trampoline);
 	}
+
+	static void HookVTable(void* Base, int Idx, void* Detour, void** OG = nullptr)
+	{
+		if (!Base || !Detour)
+		{
+			Log("Invalid parameters for HookVTable");
+			return;
+		}
+		DWORD oldProtection;
+
+		void** VTable = *(void***)Base;
+
+		if (OG)
+		{
+			*OG = VTable[Idx];
+		}
+
+		VirtualProtect(&VTable[Idx], sizeof(void*), PAGE_EXECUTE_READWRITE, &oldProtection);
+
+		VTable[Idx] = Detour;
+
+		VirtualProtect(&VTable[Idx], sizeof(void*), oldProtection, NULL);
+	}
+
+	static void CreateVTableOriginal(void* Base, int Idx, void** Original) {
+		if (!Base)
+		{
+			Log("Invalid parameters for CreateVTableOriginal");
+			return;
+		}
+		DWORD oldProtection;
+
+		void** VTable = *(void***)Base;
+
+		if (Original)
+		{
+			*Original = VTable[Idx];
+		}
+	}
 };
 
 inline void PatchAllNetModes(uintptr_t AttemptDeriveFromURL)
@@ -327,7 +372,16 @@ inline void PatchAllNetModes(uintptr_t AttemptDeriveFromURL)
 	const auto sizeOfImage = Memcury::PE::GetNTHeaders()->OptionalHeader.SizeOfImage;
 	const auto scanBytes = reinterpret_cast<std::uint8_t*>(Memcury::PE::GetModuleBase());
 
-	for (auto i = 0ul; i < sizeOfImage - 5; ++i)
+	const ptrdiff_t imageSize = ptrdiff_t(sizeOfImage);
+	const __int64 imageStart = __int64(scanBytes);
+	const __int64 imageEnd = imageStart + __int64(imageSize);
+
+	const auto InImage = [imageStart, imageEnd](__int64 Addr, __int64 Size) -> bool
+	{
+		return Addr >= imageStart && Addr <= imageEnd - Size;
+	};
+
+	for (ptrdiff_t i = 0; i < imageSize - 5; ++i)
 	{
 		if (scanBytes[i] == 0xE8 || scanBytes[i] == 0xE9)
 		{
@@ -337,114 +391,127 @@ inline void PatchAllNetModes(uintptr_t AttemptDeriveFromURL)
 
 				// scan for the read of World->NetDriver
 
-				for (auto j = 0; j > -0x100000; j--) // so we find everything. no func is actually 1mb
+				const ptrdiff_t minJ = -(i < 0x1000 ? i : 0x1000);
+
+				for (ptrdiff_t j = 0; j > minJ; j--)
 				{
-					if ((scanBytes[i + j] & 0xF8) == 0x48 && ((scanBytes[i + j + 1] & 0xFC) == 0x80 || (scanBytes[i + j + 1] & 0xF8) == 0x38)
-						&& (scanBytes[i + j + 2] & 0xF0) < 0xC0 && scanBytes[i + j + 2] != 0x65 && scanBytes[i + j + 2] != 0xBB && scanBytes[i + j + 3] == 0x48
-						&& ((scanBytes[i + j + 1] & 0xFC) != 0x80 || scanBytes[i + j + 4] == 0x0))
+					const ptrdiff_t n = i + j;
+
+					if ((scanBytes[n] & 0xF8) == 0x48 && ((scanBytes[n + 1] & 0xFC) == 0x80 || (scanBytes[n + 1] & 0xF8) == 0x38)
+						&& (scanBytes[n + 2] & 0xF0) < 0xC0 && scanBytes[n + 2] != 0x65 && scanBytes[n + 2] != 0xBB && (scanBytes[n + 3] == 0x38 || scanBytes[n + 3] == 0x48)
+						&& ((scanBytes[n + 1] & 0xFC) != 0x80 || scanBytes[n + 4] == 0x0))
 					{
 						// now, scan for if (NetDriver) return NM_Client;
 
 						bool found = false;
-						for (auto k = 4; k < 0x104; k++)
+						for (ptrdiff_t k = 4; k < 0x104; k++)
 						{
-							if (scanBytes[i + j + k] == 0x75)
-							{
-								auto Scuffness = __int64(&scanBytes[i + j + k + 5]);
+							if (n + k + 16 > imageSize)
+								break;
 
-								if (*(uint32_t*)Scuffness != 0x108 && (scanBytes[i + j + k + 4] != 0xC || scanBytes[i + j + k + 5] != 0xB) && scanBytes[i + j + k + 4] != 0x09)
+							if (scanBytes[n + k] == 0x75)
+							{
+								auto Scuffness = __int64(&scanBytes[n + k + 5]);
+
+								if (*(uint32_t*)Scuffness != 0x140 && (scanBytes[n + k + 4] != 0xC || scanBytes[n + k + 5] != 0xB) && scanBytes[n + k + 4] != 0x09)
 									continue;
 
-								Memory::Patch<uint16_t>(__int64(&scanBytes[i + j + k]), 0x9090);
-								if ((scanBytes[i + j + 1] & 0xF8) == 0x38)
-									Memory::Patch<uint32_t>(__int64(&scanBytes[i + j]), 0x90909090);
-								else if ((scanBytes[i + j + 1] & 0xFC) == 0x80)
+								Memory::Patch<uint16_t>(__int64(&scanBytes[n + k]), 0x9090);
+								if ((scanBytes[n + 1] & 0xF8) == 0x38)
+									Memory::Patch<uint32_t>(__int64(&scanBytes[n]), 0x90909090);
+								else if ((scanBytes[n + 1] & 0xFC) == 0x80)
 								{
 									DWORD og;
-									VirtualProtect(&scanBytes[i + j], 5, PAGE_EXECUTE_READWRITE, &og);
-									*(uint32*)(&scanBytes[i + j]) = 0x90909090;
-									*(uint8*)(&scanBytes[i + j + 4]) = 0x90;
-									VirtualProtect(&scanBytes[i + j], 5, og, &og);
+									VirtualProtect(&scanBytes[n], 5, PAGE_EXECUTE_READWRITE, &og);
+									*(uint32*)(&scanBytes[n]) = 0x90909090;
+									*(uint8*)(&scanBytes[n + 4]) = 0x90;
+									VirtualProtect(&scanBytes[n], 5, og, &og);
 								}
-								FlushInstructionCache(GetCurrentProcess(), &scanBytes[i + j], 5);
-								FlushInstructionCache(GetCurrentProcess(), &scanBytes[i + j + k], 2);
+								FlushInstructionCache(GetCurrentProcess(), &scanBytes[n], 5);
+								FlushInstructionCache(GetCurrentProcess(), &scanBytes[n + k], 2);
 								found = true;
 								break;
 							}
-							else if (scanBytes[i + j + k] == 0x74)
+							else if (scanBytes[n + k] == 0x74)
 							{
-								auto Scuffness = __int64(&scanBytes[i + j + k]);
+								auto Scuffness = __int64(&scanBytes[n + k]);
 								Scuffness = (Scuffness + 2) + *(int8_t*)(Scuffness + 1);
 
-								if (*(uint32_t*)(Scuffness + 3) != 0x108 && (*(uint8_t*)(Scuffness + 2) != 0xC || *(uint8_t*)(Scuffness + 3) != 0xB)
+								if (!InImage(Scuffness, 8))
+									continue;
+
+								if (*(uint32_t*)(Scuffness + 3) != 0x140 && (*(uint8_t*)(Scuffness + 2) != 0xC || *(uint8_t*)(Scuffness + 3) != 0xB)
 									&& *(uint8_t*)(Scuffness + 2) != 0x09)
 									continue;
 
-								Memory::Patch<uint8_t>(__int64(&scanBytes[i + j + k]), 0xeb);
-								if ((scanBytes[i + j + 1] & 0xF8) == 0x38)
-									Memory::Patch<uint32_t>(__int64(&scanBytes[i + j]), 0x90909090);
-								else if ((scanBytes[i + j + 1] & 0xFC) == 0x80)
+								Memory::Patch<uint8_t>(__int64(&scanBytes[n + k]), 0xeb);
+								if ((scanBytes[n + 1] & 0xF8) == 0x38)
+									Memory::Patch<uint32_t>(__int64(&scanBytes[n]), 0x90909090);
+								else if ((scanBytes[n + 1] & 0xFC) == 0x80)
 								{
 									DWORD og;
-									VirtualProtect(&scanBytes[i + j], 5, PAGE_EXECUTE_READWRITE, &og);
-									*(uint32*)(&scanBytes[i + j]) = 0x90909090;
-									*(uint8*)(&scanBytes[i + j + 4]) = 0x90;
-									VirtualProtect(&scanBytes[i + j], 5, og, &og);
+									VirtualProtect(&scanBytes[n], 5, PAGE_EXECUTE_READWRITE, &og);
+									*(uint32*)(&scanBytes[n]) = 0x90909090;
+									*(uint8*)(&scanBytes[n + 4]) = 0x90;
+									VirtualProtect(&scanBytes[n], 5, og, &og);
 								}
-								FlushInstructionCache(GetCurrentProcess(), &scanBytes[i + j], 5);
-								FlushInstructionCache(GetCurrentProcess(), &scanBytes[i + j + k], 1);
+								FlushInstructionCache(GetCurrentProcess(), &scanBytes[n], 5);
+								FlushInstructionCache(GetCurrentProcess(), &scanBytes[n + k], 1);
 								found = true;
 								break;
 							}
-							else if (scanBytes[i + j + k] == 0x0F && scanBytes[i + j + k + 1] == 0x85)
+							else if (scanBytes[n + k] == 0x0F && scanBytes[n + k + 1] == 0x85)
 							{
-								auto Scuffness = __int64(&scanBytes[i + j + k + 9]);
+								auto Scuffness = __int64(&scanBytes[n + k + 9]);
 
-								if (*(uint32_t*)Scuffness != 0x108 && (scanBytes[i + j + k + 8] != 0xC || scanBytes[i + j + k + 9] != 0xB) && scanBytes[i + j + k + 8] != 0x09)
+								if (*(uint32_t*)Scuffness != 0x140 && (scanBytes[n + k + 8] != 0xC || scanBytes[n + k + 9] != 0xB) && scanBytes[n + k + 8] != 0x09)
 									continue;
 
 								DWORD og;
-								VirtualProtect(&scanBytes[i + j + k], 6, PAGE_EXECUTE_READWRITE, &og);
-								*(uint32*)(&scanBytes[i + j + k]) = 0x90909090;
-								*(uint16*)(&scanBytes[i + j + k + 4]) = 0x9090;
-								VirtualProtect(&scanBytes[i + j + k], 6, og, &og);
-								if ((scanBytes[i + j + 1] & 0xF8) == 0x38)
-									Memory::Patch<uint32_t>(__int64(&scanBytes[i + j]), 0x90909090);
-								else if ((scanBytes[i + j + 1] & 0xFC) == 0x80)
+								VirtualProtect(&scanBytes[n + k], 6, PAGE_EXECUTE_READWRITE, &og);
+								*(uint32*)(&scanBytes[n + k]) = 0x90909090;
+								*(uint16*)(&scanBytes[n + k + 4]) = 0x9090;
+								VirtualProtect(&scanBytes[n + k], 6, og, &og);
+								if ((scanBytes[n + 1] & 0xF8) == 0x38)
+									Memory::Patch<uint32_t>(__int64(&scanBytes[n]), 0x90909090);
+								else if ((scanBytes[n + 1] & 0xFC) == 0x80)
 								{
 									DWORD og;
-									VirtualProtect(&scanBytes[i + j], 5, PAGE_EXECUTE_READWRITE, &og);
-									*(uint32*)(&scanBytes[i + j]) = 0x90909090;
-									*(uint8*)(&scanBytes[i + j + 4]) = 0x90;
-									VirtualProtect(&scanBytes[i + j], 5, og, &og);
+									VirtualProtect(&scanBytes[n], 5, PAGE_EXECUTE_READWRITE, &og);
+									*(uint32*)(&scanBytes[n]) = 0x90909090;
+									*(uint8*)(&scanBytes[n + 4]) = 0x90;
+									VirtualProtect(&scanBytes[n], 5, og, &og);
 								}
-								FlushInstructionCache(GetCurrentProcess(), &scanBytes[i + j], 5);
-								FlushInstructionCache(GetCurrentProcess(), &scanBytes[i + j + k], 6);
+								FlushInstructionCache(GetCurrentProcess(), &scanBytes[n], 5);
+								FlushInstructionCache(GetCurrentProcess(), &scanBytes[n + k], 6);
 								found = true;
 								break;
 							}
-							else if (scanBytes[i + j + k] == 0x0F && scanBytes[i + j + k + 1] == 0x84)
+							else if (scanBytes[n + k] == 0x0F && scanBytes[n + k + 1] == 0x84)
 							{
-								auto Scuffness = __int64(&scanBytes[i + j + k]);
+								auto Scuffness = __int64(&scanBytes[n + k]);
 								Scuffness = (Scuffness + 6) + *(int32_t*)(Scuffness + 2);
 
-								if (*(uint32_t*)(Scuffness + 3) != 0x108 && (*(uint8_t*)(Scuffness + 2) != 0xC || *(uint8_t*)(Scuffness + 3) != 0xB)
+								if (!InImage(Scuffness, 8))
+									continue;
+
+								if (*(uint32_t*)(Scuffness + 3) != 0x140 && (*(uint8_t*)(Scuffness + 2) != 0xC || *(uint8_t*)(Scuffness + 3) != 0xB)
 									&& *(uint8_t*)(Scuffness + 2) != 0x09)
 									continue;
 
-								Memory::Patch<uint16_t>(__int64(&scanBytes[i + j + k]), 0xe990);
-								if ((scanBytes[i + j + 1] & 0xF8) == 0x38)
-									Memory::Patch<uint32_t>(__int64(&scanBytes[i + j]), 0x90909090);
-								else if ((scanBytes[i + j + 1] & 0xFC) == 0x80)
+								Memory::Patch<uint16_t>(__int64(&scanBytes[n + k]), 0xe990);
+								if ((scanBytes[n + 1] & 0xF8) == 0x38)
+									Memory::Patch<uint32_t>(__int64(&scanBytes[n]), 0x90909090);
+								else if ((scanBytes[n + 1] & 0xFC) == 0x80)
 								{
 									DWORD og;
-									VirtualProtect(&scanBytes[i + j], 5, PAGE_EXECUTE_READWRITE, &og);
-									*(uint32*)(&scanBytes[i + j]) = 0x90909090;
-									*(uint8*)(&scanBytes[i + j + 4]) = 0x90;
-									VirtualProtect(&scanBytes[i + j], 5, og, &og);
+									VirtualProtect(&scanBytes[n], 5, PAGE_EXECUTE_READWRITE, &og);
+									*(uint32*)(&scanBytes[n]) = 0x90909090;
+									*(uint8*)(&scanBytes[n + 4]) = 0x90;
+									VirtualProtect(&scanBytes[n], 5, og, &og);
 								}
-								FlushInstructionCache(GetCurrentProcess(), &scanBytes[i + j], 5);
-								FlushInstructionCache(GetCurrentProcess(), &scanBytes[i + j + k], 2);
+								FlushInstructionCache(GetCurrentProcess(), &scanBytes[n], 5);
+								FlushInstructionCache(GetCurrentProcess(), &scanBytes[n + k], 2);
 								found = true;
 								break;
 							}
@@ -456,6 +523,8 @@ inline void PatchAllNetModes(uintptr_t AttemptDeriveFromURL)
 			}
 		}
 	}
+
+	Memory::Patch<uint16_t>(ImageBase + 0x37B8AC1, 0x9090);
 }
 
 static void RetNull() {}

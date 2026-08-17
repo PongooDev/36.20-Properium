@@ -4407,6 +4407,47 @@ enum class ESpawnActorScaleMethod : uint8
 	SelectDefaultAtRuntime                   = 2,
 };
 
+struct FActorSpawnParameters
+{
+public:
+	class FName                                   Name;                                              // 0x0000(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_4[0x4];                                        // 0x0004(0x0004)(Fixing Size After Last Property [ Dumper-7 ])
+	class AActor*                                 Template;                                          // 0x0008(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	class AActor*                                 Owner;                                             // 0x0010(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	class APawn*                                  Instigator;                                        // 0x0018(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	class ULevel*                                 OverrideLevel;                                     // 0x0020(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	class UChildActorComponent*                   OverrideParentComponent;                           // 0x0028(0x0008)(NOT AUTO-GENERATED PROPERTY)
+	ESpawnActorCollisionHandlingMethod            SpawnCollisionHandlingOverride;                    // 0x0030(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	ESpawnActorScaleMethod                        TransformScaleMethod;                              // 0x0031(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         bRemoteOwned : 1;                                  // 0x0032(0x0001)(BitIndex: 0x00)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         bNoFail : 1;                                       // 0x0032(0x0001)(BitIndex: 0x01)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         bDeferConstruction : 1;                            // 0x0032(0x0001)(BitIndex: 0x02)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         bAllowDuringConstructionScript : 1;                // 0x0032(0x0001)(BitIndex: 0x03)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         bForceGloballyUniqueName : 1;                      // 0x0032(0x0001)(BitIndex: 0x04)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         NameMode;                                          // 0x0033(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	uint32                                        ObjectFlags;                                       // 0x0034(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_38[0x48];                                      // 0x0038(0x0048)(Fixing Struct Size After Last Property [ Dumper-7 ])
+
+public:
+	FActorSpawnParameters()
+	{
+		memset(this, 0, sizeof(FActorSpawnParameters));
+
+		SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::Undefined;
+		TransformScaleMethod = ESpawnActorScaleMethod::MultiplyWithRoot;
+		ObjectFlags = 0x8;
+	}
+};
+static_assert(alignof(FActorSpawnParameters) == 0x000008, "Wrong alignment on FActorSpawnParameters");
+static_assert(offsetof(FActorSpawnParameters, Template) == 0x000008, "Member 'FActorSpawnParameters::Template' has a wrong offset!");
+static_assert(offsetof(FActorSpawnParameters, Owner) == 0x000010, "Member 'FActorSpawnParameters::Owner' has a wrong offset!");
+static_assert(offsetof(FActorSpawnParameters, Instigator) == 0x000018, "Member 'FActorSpawnParameters::Instigator' has a wrong offset!");
+static_assert(offsetof(FActorSpawnParameters, OverrideLevel) == 0x000020, "Member 'FActorSpawnParameters::OverrideLevel' has a wrong offset!");
+static_assert(offsetof(FActorSpawnParameters, OverrideParentComponent) == 0x000028, "Member 'FActorSpawnParameters::OverrideParentComponent' has a wrong offset!");
+static_assert(offsetof(FActorSpawnParameters, SpawnCollisionHandlingOverride) == 0x000030, "Member 'FActorSpawnParameters::SpawnCollisionHandlingOverride' has a wrong offset!");
+static_assert(offsetof(FActorSpawnParameters, NameMode) == 0x000033, "Member 'FActorSpawnParameters::NameMode' has a wrong offset!");
+static_assert(offsetof(FActorSpawnParameters, ObjectFlags) == 0x000034, "Member 'FActorSpawnParameters::ObjectFlags' has a wrong offset!");
+
 // Enum Engine.ELevelInstanceType
 // NumValues: 0x0004
 enum class ELevelInstanceType : uint8
@@ -13830,6 +13871,17 @@ public:
 	class FString                                 RedirectUrl;                                       // 0x0038(0x0010)(ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	TArray<class FString>                         Op;                                                // 0x0048(0x0010)(ZeroConstructor, NativeAccessSpecifierPublic)
 	class FString                                 Portal;                                            // 0x0058(0x0010)(ZeroConstructor, HasGetValueTypeHash, NativeAccessSpecifierPublic)
+public:
+	bool HasOption(const TCHAR* Test) const;
+
+	const TCHAR* GetOption(const TCHAR* Match, const TCHAR* Default) const;
+
+	FString ToString(bool FullyQualified = 0) const {
+		FString& (*ToStringInternal)(const FURL*, FString&, bool) = decltype(ToStringInternal)(InSDKUtils::GetImageBase() + 0x2D04370);
+		FString Result;
+		ToStringInternal(this, Result, FullyQualified);
+		return Result;
+	}
 };
 static_assert(alignof(FURL) == 0x000008, "Wrong alignment on FURL");
 static_assert(sizeof(FURL) == 0x000068, "Wrong size on FURL");
@@ -13898,15 +13950,38 @@ public:
 	struct FURL                                   LastRemoteURL;                                     // 0x0120(0x0068)(NativeAccessSpecifierPublic)
 	class UPendingNetGame*                        PendingNetGame;                                    // 0x0188(0x0008)(ZeroConstructor, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	TArray<struct FFullyLoadedPackagesInfo>       PackagesToFullyLoad;                               // 0x0190(0x0010)(ZeroConstructor, NativeAccessSpecifierPublic)
-	uint8                                         Pad_1A0[0x10];                                     // 0x01A0(0x0010)(Fixing Size After Last Property [ Dumper-7 ])
+	TArray<class FName>                           LevelsToLoadForPendingMapChange;                   // 0x01A0(0x0010)(NOT AUTO-GENERATED PROPERTY)
 	TArray<class ULevel*>                         LoadedLevelsForPendingMapChange;                   // 0x01B0(0x0010)(ZeroConstructor, UObjectWrapper, NativeAccessSpecifierPublic)
-	uint8                                         Pad_1C0[0x18];                                     // 0x01C0(0x0018)(Fixing Size After Last Property [ Dumper-7 ])
+	class FString                                 PendingMapChangeFailureDescription;                // 0x01C0(0x0010)(NOT AUTO-GENERATED PROPERTY)
+	uint32                                        bShouldCommitPendingMapChange;                     // 0x01D0(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_1D4[0x4];                                      // 0x01D4(0x0004)(Fixing Size After Last Property [ Dumper-7 ])
 	TArray<class UObjectReferencer*>              ObjectReferencers;                                 // 0x01D8(0x0010)(ZeroConstructor, UObjectWrapper, NativeAccessSpecifierPublic)
 	TArray<struct FLevelStreamingStatus>          PendingLevelStreamingStatusUpdates;                // 0x01E8(0x0010)(ZeroConstructor, NativeAccessSpecifierPublic)
 	class UGameViewportClient*                    GameViewport;                                      // 0x01F8(0x0008)(ZeroConstructor, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	class UGameInstance*                          OwningGameInstance;                                // 0x0200(0x0008)(ZeroConstructor, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPublic)
 	TArray<struct FNamedNetDriver>                ActiveNetDrivers;                                  // 0x0208(0x0010)(ZeroConstructor, Transient, NativeAccessSpecifierPublic)
-	uint8                                         Pad_218[0xA8];                                     // 0x0218(0x00A8)(Fixing Struct Size After Last Property [ Dumper-7 ])
+	int32                                         PIEInstance;                                       // 0x0218(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_21C[0x4];                                      // 0x021C(0x0004)(Fixing Size After Last Property [ Dumper-7 ])
+	class FString                                 PIEPrefix;                                         // 0x0220(0x0010)(NOT AUTO-GENERATED PROPERTY)
+	int32                                         PIEWorldFeatureLevel;                              // 0x0230(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	bool                                          RunAsDedicated;                                    // 0x0234(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	bool                                          bWaitingOnOnlineSubsystem;                         // 0x0235(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	bool                                          bIsPrimaryPIEInstance;                             // 0x0236(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_237[0x1];                                      // 0x0237(0x0001)(Fixing Size After Last Property [ Dumper-7 ])
+	uint32                                        AudioDeviceID;                                     // 0x0238(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_23C[0x4];                                      // 0x023C(0x0004)(Fixing Size After Last Property [ Dumper-7 ])
+	class FString                                 CustomDescription;                                 // 0x0240(0x0010)(NOT AUTO-GENERATED PROPERTY)
+	float                                         PIEFixedTickSeconds;                               // 0x0250(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	float                                         PIEAccumulatedTickSeconds;                         // 0x0254(0x0004)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_258[0x50];                                     // 0x0258(0x0050)(Fixing Size After Last Property [ Dumper-7 ])
+	TArray<class UWorld**>                        ExternalReferences;                                // 0x02A8(0x0010)(NOT AUTO-GENERATED PROPERTY)
+	class UWorld*                                 ThisCurrentWorld;                                  // 0x02B8(0x0008)(NOT AUTO-GENERATED PROPERTY)
+
+public:
+	inline class UWorld* World() const
+	{
+		return ThisCurrentWorld;
+	}
 };
 static_assert(alignof(FWorldContext) == 0x000008, "Wrong alignment on FWorldContext");
 static_assert(sizeof(FWorldContext) == 0x0002C0, "Wrong size on FWorldContext");
@@ -13920,6 +13995,16 @@ static_assert(offsetof(FWorldContext, PendingLevelStreamingStatusUpdates) == 0x0
 static_assert(offsetof(FWorldContext, GameViewport) == 0x0001F8, "Member 'FWorldContext::GameViewport' has a wrong offset!");
 static_assert(offsetof(FWorldContext, OwningGameInstance) == 0x000200, "Member 'FWorldContext::OwningGameInstance' has a wrong offset!");
 static_assert(offsetof(FWorldContext, ActiveNetDrivers) == 0x000208, "Member 'FWorldContext::ActiveNetDrivers' has a wrong offset!");
+static_assert(offsetof(FWorldContext, LevelsToLoadForPendingMapChange) == 0x0001A0, "Member 'FWorldContext::LevelsToLoadForPendingMapChange' has a wrong offset!");
+static_assert(offsetof(FWorldContext, PendingMapChangeFailureDescription) == 0x0001C0, "Member 'FWorldContext::PendingMapChangeFailureDescription' has a wrong offset!");
+static_assert(offsetof(FWorldContext, bShouldCommitPendingMapChange) == 0x0001D0, "Member 'FWorldContext::bShouldCommitPendingMapChange' has a wrong offset!");
+static_assert(offsetof(FWorldContext, PIEInstance) == 0x000218, "Member 'FWorldContext::PIEInstance' has a wrong offset!");
+static_assert(offsetof(FWorldContext, PIEPrefix) == 0x000220, "Member 'FWorldContext::PIEPrefix' has a wrong offset!");
+static_assert(offsetof(FWorldContext, RunAsDedicated) == 0x000234, "Member 'FWorldContext::RunAsDedicated' has a wrong offset!");
+static_assert(offsetof(FWorldContext, AudioDeviceID) == 0x000238, "Member 'FWorldContext::AudioDeviceID' has a wrong offset!");
+static_assert(offsetof(FWorldContext, CustomDescription) == 0x000240, "Member 'FWorldContext::CustomDescription' has a wrong offset!");
+static_assert(offsetof(FWorldContext, ExternalReferences) == 0x0002A8, "Member 'FWorldContext::ExternalReferences' has a wrong offset!");
+static_assert(offsetof(FWorldContext, ThisCurrentWorld) == 0x0002B8, "Member 'FWorldContext::ThisCurrentWorld' has a wrong offset!");
 
 // ScriptStruct Engine.RawDistributionVector
 // 0x0040 (0x0060 - 0x0020)
@@ -24792,17 +24877,82 @@ public:
 static_assert(alignof(FStartPhysicsTickFunction) == 0x000008, "Wrong alignment on FStartPhysicsTickFunction");
 static_assert(sizeof(FStartPhysicsTickFunction) == 0x000030, "Wrong size on FStartPhysicsTickFunction");
 
+enum class ELevelCollectionType : uint8;
+
 // ScriptStruct Engine.LevelCollection
 // 0x0078 (0x0078 - 0x0000)
 struct FLevelCollection final
 {
 public:
-	uint8                                         Pad_0[0x8];                                        // 0x0000(0x0008)(Fixing Size After Last Property [ Dumper-7 ])
+	ELevelCollectionType                          CollectionType;                                    // 0x0000(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	bool                                          bIsVisible;                                        // 0x0001(0x0001)(NOT AUTO-GENERATED PROPERTY)
+	uint8                                         Pad_2[0x6];                                        // 0x0002(0x0006)(Fixing Size After Last Property [ Dumper-7 ])
 	class AGameStateBase*                         GameState;                                         // 0x0008(0x0008)(ZeroConstructor, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	class UNetDriver*                             NetDriver;                                         // 0x0010(0x0008)(ZeroConstructor, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	class UDemoNetDriver*                         DemoNetDriver;                                     // 0x0018(0x0008)(ZeroConstructor, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	class ULevel*                                 PersistentLevel;                                   // 0x0020(0x0008)(ZeroConstructor, NoDestructor, UObjectWrapper, HasGetValueTypeHash, NativeAccessSpecifierPrivate)
 	TSet<class ULevel*>                           Levels;                                            // 0x0028(0x0050)(UObjectWrapper, NativeAccessSpecifierPrivate)
+
+public:
+	inline ELevelCollectionType GetType() const
+	{
+		return CollectionType;
+	}
+
+	inline void SetType(const ELevelCollectionType InType)
+	{
+		CollectionType = InType;
+	}
+
+	inline class AGameStateBase* GetGameState() const
+	{
+		return GameState;
+	}
+
+	inline void SetGameState(class AGameStateBase* const InGameState)
+	{
+		GameState = InGameState;
+	}
+
+	inline class UNetDriver* GetNetDriver() const
+	{
+		return NetDriver;
+	}
+
+	inline void SetNetDriver(class UNetDriver* const InNetDriver)
+	{
+		NetDriver = InNetDriver;
+	}
+
+	inline class UDemoNetDriver* GetDemoNetDriver() const
+	{
+		return DemoNetDriver;
+	}
+
+	inline void SetDemoNetDriver(class UDemoNetDriver* const InDemoNetDriver)
+	{
+		DemoNetDriver = InDemoNetDriver;
+	}
+
+	inline const TSet<class ULevel*>& GetLevels() const
+	{
+		return Levels;
+	}
+
+	inline class ULevel* GetPersistentLevel() const
+	{
+		return PersistentLevel;
+	}
+
+	inline bool IsVisible() const
+	{
+		return bIsVisible;
+	}
+
+	inline void SetIsVisible(const bool bInIsVisible)
+	{
+		bIsVisible = bInIsVisible;
+	}
 };
 static_assert(alignof(FLevelCollection) == 0x000008, "Wrong alignment on FLevelCollection");
 static_assert(sizeof(FLevelCollection) == 0x000078, "Wrong size on FLevelCollection");
@@ -24811,6 +24961,8 @@ static_assert(offsetof(FLevelCollection, NetDriver) == 0x000010, "Member 'FLevel
 static_assert(offsetof(FLevelCollection, DemoNetDriver) == 0x000018, "Member 'FLevelCollection::DemoNetDriver' has a wrong offset!");
 static_assert(offsetof(FLevelCollection, PersistentLevel) == 0x000020, "Member 'FLevelCollection::PersistentLevel' has a wrong offset!");
 static_assert(offsetof(FLevelCollection, Levels) == 0x000028, "Member 'FLevelCollection::Levels' has a wrong offset!");
+static_assert(offsetof(FLevelCollection, CollectionType) == 0x000000, "Member 'FLevelCollection::CollectionType' has a wrong offset!");
+static_assert(offsetof(FLevelCollection, bIsVisible) == 0x000001, "Member 'FLevelCollection::bIsVisible' has a wrong offset!");
 
 // ScriptStruct Engine.ActorDesc
 // 0x0090 (0x0090 - 0x0000)

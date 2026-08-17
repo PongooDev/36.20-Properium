@@ -4,6 +4,7 @@
 #include "Engine/Source/Runtime/Core/Public/CoreTypes.h"
 #include "Engine/Source/Runtime/Core/Public/Logging/LogMacros.h"
 #include "CrashReporter/Public/CrashReporter.h"
+#include "Engine/Source/Runtime/Core/Public/HAL/ThreadHeartBeat.h"
 
 DWORD WINAPI Main(LPVOID) {
     FCrashReporter::Register();
@@ -67,6 +68,7 @@ DWORD WINAPI Main(LPVOID) {
 
     UUserWidget::Init();
     AFortPlayerControllerFrontEnd::Init();
+    FThreadHeartBeat::Init();
 
     if (GIsClient) {
         GIsClient = 0;
@@ -75,8 +77,34 @@ DWORD WINAPI Main(LPVOID) {
         GIsServer = 1;
     }
 
+    Memory::Patch(ImageBase + 0x27C713C, 0xC3); // void UFortAnalytics::SetGameSessionID(const TSharedPtr<IAnalyticsProviderET, 1>* Provider,  const FString* GameSessionID, bool bSendEventIfChanged);
+    Memory::Patch(ImageBase + 0x27C7530, 0xC3); // void UFortAnalytics::SetGameStateClassName(const TSharedPtr<IAnalyticsProviderET, 1>* Provider, const FString* GameStateClassName, bool bSendEventIfChanged);
+
+    UWorld::Init();
+    UEngine::Init();
+    UMcpProfileGroup::Init();
+    AFortGameSession::Init();
+    UFortGameStateComponent_BattleRoyaleGamePhaseLogic::Init();
+    AFortGameMode::Init();
+    AFortGameModeZone::Init();
+    AFortGameModeAthena::Init();
+    UNetDriver::Init();
+    AFortPlayerController::Init();
+
     UKismetSystemLibrary::ExecuteConsoleCommand(GWorld, L"log LogConfig off", 0);
     UKismetSystemLibrary::ExecuteConsoleCommand(GWorld, L"log LogFortUIDirector off", 0);
+
+    auto ReplicationBridgeConfig = UObjectReplicationBridgeConfig::GetDefaultObj();
+
+    auto FortInventoryName = FName(L"/Script/FortniteGame.FortInventory");
+    for (auto& FilterConfig : ReplicationBridgeConfig->FilterConfigs)
+    {
+        if (FilterConfig.ClassName == FortInventoryName)
+        {
+            FilterConfig.DynamicFilterName = FName(0);
+            break;
+        }
+    }
     
     UWorld* World = UWorld::GetWorld();
     if (World) {
@@ -89,7 +117,7 @@ DWORD WINAPI Main(LPVOID) {
         }
         World->ServerTravel(TravelURL);
     }
-
+    
     return 0;
 }
 
