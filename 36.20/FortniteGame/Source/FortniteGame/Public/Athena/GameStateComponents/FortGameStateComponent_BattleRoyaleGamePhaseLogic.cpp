@@ -10,7 +10,6 @@ void UFortGameStateComponent_BattleRoyaleGamePhaseLogic::TickComponentHook(UFort
 
 			This->WarmupCountdownStartTime = ServerTime;
 			This->WarmupCountdownEndTime = ServerTime + This->WarmupCountdownDuration;
-			This->bGameModeWillSkipAircraft = true;
 			This->GamePhase = EAthenaGamePhase::Warmup;
 
 			This->OnRep_GamePhase(OldGamePhase);
