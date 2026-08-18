@@ -50,6 +50,7 @@ namespace Configuration {
 	inline bool bClient = false;
 
 	inline std::wstring Playlist = L"/BRPlaylists/Athena/Playlists/Playlist_DefaultSolo";
+	inline std::string MapToLoad = "Hermes_Terrain";
 }
 
 inline uint64_t ImageBase = InSDKUtils::GetImageBase();

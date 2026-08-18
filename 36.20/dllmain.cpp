@@ -112,7 +112,7 @@ DWORD WINAPI Main(LPVOID) {
     if (World) {
         UFortGameInstance* FortGameInstance = World->OwningGameInstance->Cast<UFortGameInstance>();
 
-        FString TravelURL = L"Hermes_Terrain?listen?RequiredPlayers=1";
+        FString TravelURL = FString(Configuration::MapToLoad + "?listen?RequiredPlayers=1");
 
         if (FortGameInstance && FortGameInstance->LocalPlayers.Num()) {
             FortGameInstance->LocalPlayers.Remove(0);
