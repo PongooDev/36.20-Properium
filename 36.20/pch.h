@@ -48,6 +48,8 @@ using namespace SDK;
 namespace Configuration {
 	inline bool bUseGameSessions = false;
 	inline bool bClient = false;
+
+	inline std::wstring Playlist = L"/BRPlaylists/Athena/Playlists/Playlist_DefaultSolo";
 }
 
 inline uint64_t ImageBase = InSDKUtils::GetImageBase();
@@ -230,7 +232,7 @@ public:
 				{
 					if (Obj->IsA(BigC))
 					{
-						SwapVTableEntry(Obj->VTable, Idx, Detour, 0);
+						HookVTable(Obj, Idx, Detour, 0);
 					}
 				}
 			}

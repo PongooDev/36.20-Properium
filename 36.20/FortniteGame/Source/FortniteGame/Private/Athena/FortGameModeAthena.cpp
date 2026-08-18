@@ -125,29 +125,39 @@ APawn* AFortGameModeAthena::SpawnDefaultPawnForHook(AFortGameModeAthena* This, A
 void AFortGameModeAthena::InitGameStateHook(AFortGameModeAthena* This) {
 	InitGameStateOG(This);
 
-	AFortGameStateAthena* GameState = static_cast<AFortGameStateAthena*>(This->GameState);
+	AFortGameStateAthena* GameState = This->GameState->Cast<AFortGameStateAthena>();
 	if (!GameState) {
-		UE_LOG_REF(LogFort, Warning, TEXT("InitGameState: no AFortGameStateAthena"));
 		return;
 	}
 
-	UFortPlaylistAthena* Playlist = static_cast<UFortPlaylistAthena*>(UObject::StaticLoadObject(
-		UFortPlaylistAthena::StaticClass(), nullptr, TEXT("/BRPlaylists/Athena/Playlists/Playlist_DefaultSolo")));
+	UFortPlaylistAthena* Playlist = UObject::StaticLoadObject(
+		UFortPlaylistAthena::StaticClass(),
+		nullptr,
+		Configuration::Playlist.c_str()
+	)->Cast<UFortPlaylistAthena>();
 
 	if (!Playlist) {
-		UE_LOG_REF(LogFort, Warning, TEXT("InitGameState: failed to load Playlist_DefaultSolo"));
 		return;
 	}
 
-	GameState->CurrentPlaylistInfo.BasePlaylist = Playlist;
-	GameState->CurrentPlaylistInfo.OverridePlaylist = nullptr;
-	GameState->bPlaylistDataIsLoaded = true;
-	GameState->bPlaylistDataIsActivelyLoading = false;
+	This->GameSession->MaxPlayers = Playlist->MaxPlayers;
+	This->GameSession->MaxPartySize = Playlist->MaxTeamSize;
+
+	This->MaxPlayerCount = Playlist->MaxPlayers;
+
+	This->SetCurrentPlaylistName(Playlist->PlaylistName);
+	This->SetCurrentPlaylistId(Playlist->PlaylistId);
+
+	GameState->bStormReachedFinalPosition = false;
+
+	GameState->SetCurrentPlaylistId(Playlist->PlaylistId);
+
+	GameState->CurrentPlaylistInfo.SetBasePlaylist(Playlist);
+	GameState->CurrentPlaylistInfo.MarkArrayDirty();
+
+	GameState->TeamCount = Playlist->MaxTeamCount;
 
 	GameState->OnRep_CurrentPlaylistInfo();
-
-	UE_LOG_REF(LogFort, Warning, TEXT("InitGameState: set playlist %hs on %hs"),
-		Playlist->GetName().c_str(), GameState->GetName().c_str());
 }
 
 void AFortGameModeAthena::Init() {

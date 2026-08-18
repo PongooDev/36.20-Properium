@@ -90,6 +90,8 @@ DWORD WINAPI Main(LPVOID) {
     AFortGameModeAthena::Init();
     UNetDriver::Init();
     AFortPlayerController::Init();
+    APlayerController::Init();
+    AFortPlayerControllerZone::Init();
 
     UKismetSystemLibrary::ExecuteConsoleCommand(GWorld, L"log LogConfig off", 0);
     UKismetSystemLibrary::ExecuteConsoleCommand(GWorld, L"log LogFortUIDirector off", 0);

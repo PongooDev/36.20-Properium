@@ -729,12 +729,12 @@ static_assert(offsetof(FSoftObjectPath, SubPathString) == 0x000008, "Member 'FSo
 class FSoftObjectPtr : public TPersistentObjectPtr<FakeSoftObjectPtr::FSoftObjectPath>
 {
 public:
-	inline class UObject* Get()
+	inline class UObject* Get() const
 	{
 		if (!this)
 			return nullptr;
 
-		auto LoadSynchronous = (class UObject * (*)(FSoftObjectPtr*))(InSDKUtils::GetImageBase() + 0x1842BE4);
+		auto LoadSynchronous = (class UObject * (*)(const FSoftObjectPtr*))(InSDKUtils::GetImageBase() + 0x1842BE4);
 		return LoadSynchronous(this);
 	}
 };

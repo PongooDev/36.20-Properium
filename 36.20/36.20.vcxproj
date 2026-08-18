@@ -181,6 +181,7 @@
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Misc\AssertionMacros.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Misc\Parse.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\NetDriver.cpp" />
+    <ClCompile Include="Engine\Source\Runtime\Engine\Private\PlayerController.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\UnrealEngine.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\URL.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\World.cpp" />
@@ -191,6 +192,7 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\FortGameModeZone.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Online\FortGameSession.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerController.cpp" />
+    <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerControllerZone.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\UI\FrontEnd\FortPlayerControllerFrontEnd.cpp" />
     <ClCompile Include="FortniteGame\Source\FortniteGame\Public\Athena\GameStateComponents\FortGameStateComponent_BattleRoyaleGamePhaseLogic.cpp" />
     <ClCompile Include="pch.cpp">

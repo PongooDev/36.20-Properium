@@ -3285,6 +3285,10 @@ public:
 	bool WasInputKeyJustPressed(const struct FKey& Key) const;
 	bool WasInputKeyJustReleased(const struct FKey& Key) const;
 
+	static inline void (*ServerAcknowledgePossessionOG)(APlayerController* This, APawn* P);
+
+	static void Init();
+
 public:
 	static class UClass* StaticClass()
 	{
