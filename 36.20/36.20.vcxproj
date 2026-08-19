@@ -48,7 +48,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -152,7 +152,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CrashReporter\Public\CrashReporter.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\CrashReporter\Public\CrashReporter.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\CoreTypes.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\PreprocessorHelpers.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\Runnable.h" />
@@ -164,15 +164,18 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\Build.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\Parse.h" />
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\VarArgs.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\json\json.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\Memcury\Memcury.h" />
+    <ClInclude Include="Engine\Source\ThirdParty\minhook\MinHook.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="SDK\PropertyFixup.hpp" />
-    <ClInclude Include="SDK\SDK.hpp" />
-    <ClInclude Include="SDK\UnrealContainers.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\SDK\PropertyFixup.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\SDK\SDK.hpp" />
+    <ClInclude Include="Engine\Source\ThirdParty\SDK\UnrealContainers.hpp" />
     <ClInclude Include="SDK\UtfN.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CrashReporter\Private\CrashReporter.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\CrashReporter\Private\CrashReporter.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Private\HAL\ThreadHeartBeat.cpp" />
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Logging\LogCategory.cpp" />
@@ -201,13 +204,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="SDK\SDK\Basic.cpp" />
-    <ClCompile Include="SDK\SDK\CoreUObject_functions.cpp" />
-    <ClCompile Include="SDK\SDK\Engine_functions.cpp" />
-    <ClCompile Include="SDK\SDK\FortniteGame_functions.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\SDK\SDK\Basic.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\SDK\SDK\CoreUObject_functions.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\SDK\SDK\Engine_functions.cpp" />
+    <ClCompile Include="Engine\Source\ThirdParty\SDK\SDK\FortniteGame_functions.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="SDK\NameCollisions.inl" />
+    <None Include="Engine\Source\ThirdParty\SDK\NameCollisions.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

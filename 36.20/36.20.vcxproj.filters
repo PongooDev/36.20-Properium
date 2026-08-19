@@ -21,7 +21,7 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CrashReporter\Public\CrashReporter.h">
+    <ClInclude Include="Engine\Source\ThirdParty\CrashReporter\Public\CrashReporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Source\Runtime\Core\Public\CoreTypes.h">
@@ -51,13 +51,13 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Public\Misc\VarArgs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SDK\PropertyFixup.hpp">
+    <ClInclude Include="Engine\Source\ThirdParty\SDK\PropertyFixup.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SDK\SDK.hpp">
+    <ClInclude Include="Engine\Source\ThirdParty\SDK\SDK.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SDK\UnrealContainers.hpp">
+    <ClInclude Include="Engine\Source\ThirdParty\SDK\UnrealContainers.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SDK\UtfN.hpp">
@@ -69,6 +69,15 @@
     <ClInclude Include="Engine\Source\Runtime\Core\Public\HAL\ThreadHeartBeat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Source\ThirdParty\json\json.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Source\ThirdParty\Memcury\Memcury.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Source\ThirdParty\minhook\MinHook.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -77,7 +86,7 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CrashReporter\Private\CrashReporter.cpp">
+    <ClCompile Include="Engine\Source\ThirdParty\CrashReporter\Private\CrashReporter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\Core\Private\Logging\LogCategory.cpp">
@@ -107,13 +116,13 @@
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\World.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SDK\SDK\Basic.cpp">
+    <ClCompile Include="Engine\Source\ThirdParty\SDK\SDK\Basic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SDK\SDK\CoreUObject_functions.cpp">
+    <ClCompile Include="Engine\Source\ThirdParty\SDK\SDK\CoreUObject_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SDK\SDK\Engine_functions.cpp">
+    <ClCompile Include="Engine\Source\ThirdParty\SDK\SDK\Engine_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\UMG\Private\UserWidget.cpp">
@@ -146,7 +155,7 @@
     <ClCompile Include="FortniteGame\Source\FortniteGame\Private\Player\FortPlayerController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SDK\SDK\FortniteGame_functions.cpp">
+    <ClCompile Include="Engine\Source\ThirdParty\SDK\SDK\FortniteGame_functions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Source\Runtime\Engine\Private\PlayerController.cpp">
@@ -157,7 +166,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="SDK\NameCollisions.inl">
+    <None Include="Engine\Source\ThirdParty\SDK\NameCollisions.inl">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>

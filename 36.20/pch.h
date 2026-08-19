@@ -35,13 +35,13 @@
 #include <cstdarg>
 #include <unordered_set>
 
-#include "minhook/MinHook.h"
+#include "Engine/Source/ThirdParty/minhook/MinHook.h"
 
-#pragma comment(lib, "minhook/minhook.lib")
+#pragma comment(lib, "Engine/Source/ThirdParty/minhook/minhook.lib")
 #pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "ntdll.lib")
 
-#include "SDK/SDK.hpp"
+#include "Engine/Source/ThirdParty/SDK/SDK.hpp"
 
 using namespace SDK;
 
@@ -60,7 +60,7 @@ inline uint64_t ImageBase = InSDKUtils::GetImageBase();
 #define GIsClient (*(bool*)(0x14EA57DA + InSDKUtils::GetImageBase()))
 #define GIsServer (*(bool*)(0x14EA5757 + InSDKUtils::GetImageBase()))
 
-#include "Memcury/Memcury.h"
+#include "Engine/Source/ThirdParty/Memcury/Memcury.h"
 
 #include "Engine/Source/Runtime/Core/Public/Logging/LogMacros.h"
 

@@ -3,7 +3,7 @@
 
 #include "Engine/Source/Runtime/Core/Public/CoreTypes.h"
 #include "Engine/Source/Runtime/Core/Public/Logging/LogMacros.h"
-#include "CrashReporter/Public/CrashReporter.h"
+#include "Engine/Source/ThirdParty/CrashReporter/Public/CrashReporter.h"
 #include "Engine/Source/Runtime/Core/Public/HAL/ThreadHeartBeat.h"
 
 DWORD WINAPI Main(LPVOID) {
